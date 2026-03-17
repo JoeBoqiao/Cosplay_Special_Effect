@@ -1,0 +1,12 @@
+/* Global styles for the backend placeholder UI */
+html,
+body {
+  padding: 0;
+  margin: 0;
+  color: #111;
+  background: #f3f4f6;
+}
+
+* {
+  box-sizing: border-box;
+}
