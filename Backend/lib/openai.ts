@@ -41,24 +41,32 @@ export async function analyzeImage(
 ): Promise<AnalyzeResponsePayload> {
   const systemPrompt = buildAnalyzeSystemPrompt(payload.effectType);
 
-  // The Responses API can accept multiple input types, but for the MVP we pass the image as base64.
-  // TODO: Update to use proper input_image type once the SDK supports it reliably.
-  const userContent = [`User request: ${payload.userPrompt}`];
+  // Build user message with the image in OpenAI vision format (image_url with data URI).
+  const textParts = [`User request: ${payload.userPrompt}`];
   if (payload.effectType) {
-    userContent.push(`Requested effect: ${payload.effectType}`);
+    textParts.push(`Requested effect: ${payload.effectType}`);
   }
-  userContent.push(
+  textParts.push(
     "Please analyze the cosplay photo and return a JSON object with the required fields.",
   );
-  userContent.push("Image base64 string (truncated for analysis):");
-  userContent.push(payload.image.base64.slice(0, 1024));
+
+  const dataUri = `data:${payload.image.mimeType};base64,${payload.image.base64}`;
 
   const client = getOpenAIClient();
   const response = await client.responses.create({
     model: "gpt-4.1-mini",
     input: [
       { role: "system", content: systemPrompt },
-      { role: "user", content: userContent.join("\n\n") },
+      {
+        role: "user",
+        content: [
+          { type: "input_text", text: textParts.join("\n\n") },
+          {
+            type: "input_image",
+            image_url: dataUri,
+          },
+        ],
+      },
     ],
   });
 

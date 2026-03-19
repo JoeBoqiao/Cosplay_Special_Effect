@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  allowedDevOrigins: ["10.0.0.113"], // Allow cross-origin from this IP
+  allowedDevOrigins: ["*"], // Allow cross-origin from any dev origin
   async rewrites() {
     return [
       {

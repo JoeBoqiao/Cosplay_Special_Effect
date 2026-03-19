@@ -33,6 +33,15 @@ export default function ResultDisplay({ result }: ResultDisplayProps) {
               alt="Generated result"
               className="mx-auto max-h-72 w-full object-contain"
             />
+            <div className="mt-3 flex justify-center">
+              <a
+                href={imageUrl}
+                download="cosplay-effect-result.png"
+                className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
+              >
+                ⬇ Download result
+              </a>
+            </div>
           </div>
         ) : placeholder ? (
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
