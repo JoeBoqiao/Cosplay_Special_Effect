@@ -11,6 +11,8 @@ export interface GenerateRequest {
   finalPrompt: string;
   effectType?: string;
   image?: File;
+  referenceImage?: File;
+  scale?: number;
 }
 
 export interface GenerateResponse {

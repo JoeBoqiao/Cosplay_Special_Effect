@@ -50,6 +50,12 @@ export async function generateImage(
   if (payload.image) {
     formData.append("image", payload.image);
   }
+  if (payload.referenceImage) {
+    formData.append("referenceImage", payload.referenceImage);
+  }
+  if (payload.scale !== undefined) {
+    formData.append("scale", String(payload.scale));
+  }
 
   const res = await fetch("/api/generate", {
     method: "POST",

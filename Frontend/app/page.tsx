@@ -12,8 +12,12 @@ export default function HomePage() {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  const [referenceFile, setReferenceFile] = useState<File | null>(null);
+  const [referencePreviewUrl, setReferencePreviewUrl] = useState<string | null>(null);
+
   const [userPrompt, setUserPrompt] = useState("");
   const [effectType, setEffectType] = useState<string>("lightning");
+  const [effectStrength, setEffectStrength] = useState<number>(0.6);
 
   const [analyzeResult, setAnalyzeResult] = useState<AnalyzeResponse | null>(
     null,
@@ -28,7 +32,9 @@ export default function HomePage() {
 
   const canAnalyze = !!file && userPrompt.trim().length > 0;
   const canGenerate =
-    !!analyzeResult && analyzeResult.finalPrompt?.trim().length > 0;
+    !!analyzeResult &&
+    analyzeResult.finalPrompt?.trim().length > 0 &&
+    !!referenceFile;
 
   const handleFileChange = (nextFile: File | null) => {
     setFile(nextFile);
@@ -45,10 +51,27 @@ export default function HomePage() {
     setPreviewUrl(url);
   };
 
+  const handleReferenceFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const nextFile = e.target.files?.[0] ?? null;
+    setReferenceFile(nextFile);
+    setGenerateResult(null);
+
+    if (!nextFile) {
+      setReferencePreviewUrl(null);
+      return;
+    }
+
+    const url = URL.createObjectURL(nextFile);
+    setReferencePreviewUrl(url);
+  };
+
   const resetAll = () => {
     setFile(null);
     setPreviewUrl(null);
+    setReferenceFile(null);
+    setReferencePreviewUrl(null);
     setUserPrompt("");
+    setEffectStrength(0.6);
     setAnalyzeResult(null);
     setGenerateResult(null);
     setErrorMessage(null);
@@ -70,9 +93,9 @@ export default function HomePage() {
           Cosplay Effects Studio
         </h1>
         <p className="mt-2 max-w-2xl text-slate-600">
-          Upload a cosplay photo, describe the effect you want, and let the AI
-          suggest cinematic effect prompts. Then generate a polished result for
-          your next share.
+          Upload a cosplay photo and a reference effect image. The AI will
+          analyze your photo and apply the reference effects onto it while
+          preserving your original image.
         </p>
       </header>
 
@@ -107,6 +130,61 @@ export default function HomePage() {
 
           <ImagePreview imageUrl={previewUrl} />
 
+          {/* Reference Effect Image Upload */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900">
+              2. Reference effect image
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Upload a reference image showing the effect you want (e.g., a game
+              screenshot with special effects, a character with wings/fire/lightning).
+            </p>
+
+            <div className="mt-4 space-y-4">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleReferenceFileChange}
+                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                disabled={generateLoading}
+              />
+
+              {referencePreviewUrl ? (
+                <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50">
+                  <img
+                    src={referencePreviewUrl}
+                    alt="Reference effect preview"
+                    className="h-full w-full rounded-lg object-contain"
+                  />
+                </div>
+              ) : null}
+
+              {/* Effect Strength Slider */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700">
+                  Effect strength: {effectStrength.toFixed(1)}
+                </label>
+                <p className="text-xs text-slate-500 mb-2">
+                  Lower = more faithful to original photo. Higher = stronger effect transfer.
+                </p>
+                <input
+                  type="range"
+                  min="0.2"
+                  max="1.0"
+                  step="0.1"
+                  value={effectStrength}
+                  onChange={(e) => setEffectStrength(parseFloat(e.target.value))}
+                  className="w-full"
+                  disabled={generateLoading}
+                />
+                <div className="flex justify-between text-xs text-slate-400">
+                  <span>Subtle (0.2)</span>
+                  <span>Strong (1.0)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {errorMessage ? (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
               <strong>Error:</strong> {errorMessage}
@@ -121,7 +199,7 @@ export default function HomePage() {
             enabled={canGenerate}
             loading={generateLoading}
             onGenerate={async () => {
-              if (!analyzeResult) return;
+              if (!analyzeResult || !referenceFile) return;
               setErrorMessage(null);
               setGenerateLoading(true);
               try {
@@ -130,6 +208,8 @@ export default function HomePage() {
                   finalPrompt: analyzeResult.finalPrompt,
                   effectType,
                   image: file ?? undefined,
+                  referenceImage: referenceFile,
+                  scale: effectStrength,
                 });
                 setGenerateResult(resp);
               } catch (err: any) {
@@ -139,6 +219,12 @@ export default function HomePage() {
               }
             }}
           />
+
+          {!referenceFile && analyzeResult ? (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+              ⬅ Upload a reference effect image to enable generation.
+            </div>
+          ) : null}
 
           <ResultDisplay result={generateResult} />
 
