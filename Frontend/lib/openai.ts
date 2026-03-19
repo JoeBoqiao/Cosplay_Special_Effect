@@ -64,6 +64,7 @@ export async function analyzeImage(
           {
             type: "input_image",
             image_url: dataUri,
+            detail: "auto",
           },
         ],
       },
