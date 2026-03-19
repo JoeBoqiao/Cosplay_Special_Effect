@@ -10,6 +10,7 @@ export interface AnalyzeResponse {
 export interface GenerateRequest {
   finalPrompt: string;
   effectType?: string;
+  image?: File;
 }
 
 export interface GenerateResponse {

@@ -58,6 +58,11 @@ export function validateGenerateBody(body: unknown): GenerateRequestPayload {
       parsed.finalPrompt.trim().length > 0,
     "finalPrompt is required.",
   );
+  assertCondition(
+    typeof parsed.imageBase64 === "string" &&
+      parsed.imageBase64.length > 0,
+    "imageBase64 is required.",
+  );
 
   return {
     finalPrompt: parsed.finalPrompt.trim(),
@@ -66,5 +71,7 @@ export function validateGenerateBody(body: unknown): GenerateRequestPayload {
       parsed.effectType.trim().length > 0
         ? parsed.effectType.trim()
         : undefined,
+    imageBase64: parsed.imageBase64,
+    imageMimeType: typeof parsed.imageMimeType === "string" ? parsed.imageMimeType : undefined,
   };
 }

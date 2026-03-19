@@ -113,8 +113,8 @@ export async function analyzeImage(
 }
 
 /**
- * Generate a placeholder / initial response for an image generation request.
- * This is designed to be easy to upgrade later with real image generation.
+ * Edit an existing image using OpenAI's image edit API.
+ * Applies the effect described in finalPrompt onto the original uploaded image.
  */
 export async function generateImage(
   payload: GenerateRequestPayload,
@@ -127,11 +127,16 @@ export async function generateImage(
   const client = getOpenAIClient();
 
   try {
-    const response = await client.images.generate({
+    // Convert base64 image to a File object for the edit API
+    const imageBuffer = Buffer.from(payload.imageBase64, "base64");
+    const imageFile = new File([imageBuffer], "input.png", {
+      type: payload.imageMimeType || "image/png",
+    });
+
+    const response = await client.images.edit({
       model: "gpt-image-1",
+      image: imageFile,
       prompt: payload.finalPrompt,
-      // Optional: you can adjust size or other params here if needed.
-      // size: "1024x1024",
     });
 
     const firstItem = (response as any)?.data?.[0];
@@ -140,8 +145,6 @@ export async function generateImage(
     const b64 =
       typeof firstItem?.b64_json === "string" ? firstItem.b64_json : undefined;
 
-    // Some OpenAI deployments return a base64 PNG image instead of a hosted URL.
-    // The client can render data URIs directly in an <img> tag.
     const imageDataUri = b64 ? `data:image/png;base64,${b64}` : undefined;
     const finalImageUrl = imageUrl ?? imageDataUri;
 
@@ -152,24 +155,22 @@ export async function generateImage(
         imageUrl: finalImageUrl,
         placeholder: finalImageUrl
           ? undefined
-          : "Image generation completed but no usable output was returned.",
+          : "Image edit completed but no usable output was returned.",
       },
       raw: {
         openaiResponse: response,
       },
     };
   } catch (error) {
-    // Fallback for environments where the Images API is not enabled.
     return {
       finalPrompt: payload.finalPrompt,
       generation: generationMetadata,
       output: {
         placeholder:
-          "Image generation is not yet implemented in the backend MVP.",
+          "Image edit failed. Please try again.",
       },
       raw: {
         error,
-        note: "Replace this with actual OpenAI images.generate response when enabled.",
       },
     };
   }

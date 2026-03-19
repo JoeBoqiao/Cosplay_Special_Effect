@@ -42,13 +42,18 @@ export async function analyzeImage(
 export async function generateImage(
   payload: GenerateRequest,
 ): Promise<GenerateResponse> {
+  const formData = new FormData();
+  formData.append("finalPrompt", payload.finalPrompt);
+  if (payload.effectType) {
+    formData.append("effectType", payload.effectType);
+  }
+  if (payload.image) {
+    formData.append("image", payload.image);
+  }
+
   const res = await fetch("/api/generate", {
     method: "POST",
-    headers: {
-      ...DEFAULT_HEADERS,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
+    body: formData,
   });
   if (!res.ok) {
     const body = await res.json().catch(() => null);

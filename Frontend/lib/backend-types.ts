@@ -25,6 +25,8 @@ export interface AnalyzeResponsePayload {
 export interface GenerateRequestPayload {
   finalPrompt: string;
   effectType?: string;
+  imageBase64: string;
+  imageMimeType?: string;
 }
 
 export interface GenerateResponsePayload {

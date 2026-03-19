@@ -129,6 +129,7 @@ export default function HomePage() {
                 const resp = await generateImage({
                   finalPrompt: analyzeResult.finalPrompt,
                   effectType,
+                  image: file ?? undefined,
                 });
                 setGenerateResult(resp);
               } catch (err: any) {
